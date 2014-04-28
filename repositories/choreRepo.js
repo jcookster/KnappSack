@@ -16,28 +16,9 @@ exports.choreRepo = ( function () {
         pmongo = require('promised-mongo'),
         q = pmongo(databaseUrl, collections);
 
-    var getPeople = function ( res ) {
-
-        db.people.find({ gid: currentUserGid() }, function ( error, item ) {
-            if ( error )
-                console.log( error );
-            
-            var people = _.each(item, function(current) {
-                
-                var person = new Knapp.person();
-                person = _.defaults(current, person);
-                
-                return person;
-            });
-
-            console.log(people);
-
-            res.send( people );
-        });
-    };
-
-    var qGetPeople = function() {
-        return q.people.find({ gid: currentUserGid() }).toArray().then(function(result) {
+    var getPeople = function ( ) {
+    
+       return q.people.find({ gid: currentUserGid() }).toArray().then(function(result) {
               
             var people = _.each(result, function(current) {
                 var person = new Knapp.person();
@@ -47,18 +28,22 @@ exports.choreRepo = ( function () {
             });
             return people;
         });
-    }
-
+    };
+    
     var currentUserGid = function () {
         return 1;
+    }
+    var save = function(request) {
+        console.log('incoming request');
+        console.log(request);
+        saveChores(request.chores);
+        savePeople(request.people);
     }
 
     var saveChores = function ( saveRequest ) {
 
         var chores = { gid: currentUserGid(), chores: saveRequest };
-
-        console.log( chores );
-
+        
         db.test.remove( { gid: currentUserGid() });
 
         db.test.save( chores, function ( err, saved ) {
@@ -68,29 +53,29 @@ exports.choreRepo = ( function () {
 
     };
 
-    var qGetChores = function ( gid ) {
+     var savePeople = function ( saveRequest ) {
+
+         _.each(saveRequest, function(person) {
+            // delete person._id;
+             delete person.choreList;
+             //delete person.gid;
+
+             person.gid = currentUserGid();
+         });
         
-        console.log( 'attempting find of GID: ' + gid );
+        db.people.remove( { gid: currentUserGid() });
 
-        return q.test.findOne({ "gid": 1 });
-    };
-
-    var getChores = function ( res ) {
-        
-        var gid = currentUserGid();
-
-        console.log( 'attempting find of GID: ' + gid );
-
-        db.test.findOne( { "gid": 1 }, function ( error, item ) {
-            if ( error )
-                console.log( error );
-            if (item)
-                res.send(item.chores);
-            else
-                res.send([]);
+        db.people.insert( saveRequest, function ( err, saved ) {
+            if ( err || !saved ) console.log( "Users not saved" );
+            else console.log( "Users saved" );
         });
+
     };
 
+    var getChores = function ( ) {
+        
+       return q.test.findOne({ "gid": currentUserGid() });
+    };
 
     var calcIndices = function ( chores ) {
 
@@ -121,9 +106,8 @@ exports.choreRepo = ( function () {
 
     var calcAssignments = function(res) {
 
-        var gid = currentUserGid(),
-            chorePromise = qGetChores(gid),
-            peoplePromise = qGetPeople(gid);
+        var chorePromise = getChores(),
+            peoplePromise = getPeople();
 
         chorePromise.then(function(chores) {
             peoplePromise.then(function(people) {
@@ -134,29 +118,58 @@ exports.choreRepo = ( function () {
             });
         });
     };
+    var findSmallestIndex = function(array) {
+        if (array) {
+
+            var smallestIndex = 0,
+                smallestValue = array[0];
+
+            _.each(array, function(item, index) {
+
+                if (item < smallestValue)
+                    smallestIndex = index;
+            });
+        }
+        return smallestIndex;
+    };
+
+    var initSumArray = function(people) {
+        
+        var sumArray = [];
+
+        _.each(people, function() {
+            sumArray.push(0);
+        });
+
+        return sumArray;
+    };
+
+    var initListArray = function(people) {
+        var listArray = [];
+        _.each(people, function() {
+            listArray.push([]);
+        });
+        return listArray;
+    };
 
     var performCalculation = function(chores, people) {
 
-        var indices = calcIndices(chores.chores);
-        
-        //var m = indices;
-        var length = indices.length;
-        var sums = [0, 0];
-        var stones = [[], []];
+        var indices = calcIndices(chores.chores),
+            length = indices.length,
+            sums = initSumArray(people), //[0, 0, 0];
+            shuffled = shuffle(chores.chores),
+            choreLists = initListArray(people), //[[], [], []];
+            stones = initListArray(people); //[[], [],[]];
 
         indices.sort().reverse();
 
         for (var i = 0; i < length; i++) {
 
-            var chosenIndex = (sums[0] > sums[1]) ? 1 : 0;
+            var chosenIndex = findSmallestIndex( sums );
             sums[chosenIndex] += indices[i];
             stones[chosenIndex].push(indices[i]);
         }
         
-        var shuffled = shuffle(chores.chores);
-
-        var choreLists = [[], []];
-
         for (var person = 0; person < people.length; person++) {
 
             people[person].choreList = [];
@@ -182,6 +195,6 @@ exports.choreRepo = ( function () {
         getChores: getChores,
         getPeople: getPeople,
         calcAssignments: calcAssignments,
-        saveChores: saveChores
+        save: save
     };
 })();

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -17,22 +17,39 @@
 	<script src="/js/bootstrap.min.js"></script>
 </head>
 <body ng-app>
-    <div class="container" ng-controller="choreCtrl">
+    <div class="container" ng-controller="choreCtrl" data-ng-init="init()">
        
         <div class="jumbotron">
             <h1>{{projectName}}</h1>
             <p class="lead">Split the workload between roomates. Enter a chore name and a <strong>Misery Index</strong> that indicates how terrible that chore is. The {{productName}} will then split the work up into N evenly distributed bins. This solution is a combinatorial optimization of the NP-Complete Knapsack problem using dynamic programming.</p>
         </div>
-        <input ng-model="choreName" />
-        <input ng-model="miseryIndex" />
-        <button ng-click="addChore()">Add</button>
-        <li ng-repeat="chore in chores">
-            <span>ChoreName:</span><input class="chore-name" ng-model="chore.choreName" />
-            <input class="chore-misery" ng-model="chore.miseryIndex" />
-        </li>
-        <button ng-click="calcAssignments()">calc</button>
+
+        <div>
+            <div>People</div>
+            <input ng-model="personName" />
+            <button ng-click="addPerson()">Add</button>
+        </div>
+        
+        <div>
+            <div>Chores</div>
+            <input ng-model="choreName" />
+            <input ng-model="miseryIndex" />
+            <button ng-click="addChore()">Add</button>
+        </div>
+
+        <div>
+            <ul ng-repeat="chore in chores">
+                <li>ChoreName:</li><input class="chore-name" ng-model="chore.choreName" />
+                <input class="chore-misery" ng-model="chore.miseryIndex" />
+                <span ng-click="removeChore($index)">x</span>
+            </ul>
+        </div>
+
+        <button ng-click="calcAssignments()">Refresh</button>
+
         <ul ng-repeat="person in people">
             <span>{{person.name}}</span>
+            <span ng-click="removePerson($index)">x</span>
             <li ng-repeat="chore in person.choreList">
                 <span>{{chore.choreName}} (Misery Index: {{chore.miseryIndex}})</span>
             </li>
