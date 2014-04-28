@@ -33,4 +33,4 @@ exports.list = function ( req, res ) {
     });
 };
 exports.assignments = function ( req, res ) { choreRepo.calcAssignments( res ); };
-exports.save = function ( req, res ) { res.send( choreRepo.save( req.body ) ); };
+exports.save = function ( req, res ) { choreRepo.save( req.body, res ); };
