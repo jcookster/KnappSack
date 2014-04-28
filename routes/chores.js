@@ -1,10 +1,10 @@
 
 /*
- * GET chore listing.
+ * 
  */
-var choreRepo = require('../repositories/choreRepo').choreRepo;
+var choreRepo = require( '../repositories/choreRepo' ).choreRepo;
 
-exports.people = function(req, res) {res.send(choreRepo.getPeople(req.params.gid) );};
-exports.list = function(req, res){ res.send(choreRepo.getChores(req.params.gid).chores); };
-exports.assignments = function(req, res){ res.send(choreRepo.calcAssignments(req.params.gid) ); };
-exports.save = function(req, res){ res.send(choreRepo.saveChores() ); };
+exports.people = function ( req, res ) { choreRepo.getPeople( res ); };
+exports.list = function ( req, res ) { choreRepo.getChores( res ); };
+exports.assignments = function ( req, res ) { choreRepo.calcAssignments(res); };
+exports.save = function ( req, res ) { res.send( choreRepo.saveChores( req.body ) ); };

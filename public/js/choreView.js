@@ -44,6 +44,20 @@ function choreCtrl($scope, $http) {
 			console.log( url + ' failed.');
 		});
 	};
+
+    $scope.save = function() {
+        $http({
+		method: 'POST',
+		url: '/api/v1/save',
+        data: $scope.chores
+		}).success(function(data, status, headers, config) {
+			console.log('/assignments succeeded. - ' + data.length);
+			$scope.people = data;
+		}).error(function(data, status, headers, config) {
+			console.log( url + ' failed.');
+		});
+
+    };
 }               
 
 
